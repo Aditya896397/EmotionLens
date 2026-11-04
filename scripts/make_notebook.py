@@ -28,7 +28,7 @@ project folder on your laptop."""),
     ("code", """# 1. Check the GPU
 !nvidia-smi --query-gpu=name,memory.total --format=csv || echo "No GPU: Runtime > Change runtime type > T4 GPU\""""),
     ("code", """# 2. Get the project code: either clone from GitHub or upload the project zip
-REPO_URL = ""   # e.g. "https://github.com/<your-username>/EmotionLens-AI.git"; leave empty to upload a zip
+REPO_URL = "https://github.com/Aditya896397/EmotionLens.git"   # set to "" to upload a project zip instead
 
 import os, zipfile, shutil
 os.chdir("/content")
@@ -37,7 +37,7 @@ if REPO_URL:
     !git clone -q {REPO_URL} /content/EmotionLens-AI
 else:
     from google.colab import files
-    uploaded = files.upload()          # choose EmotionLens-AI-colab.zip
+    uploaded = files.upload()          # choose EmotionLens-AI-colab.zip (git archive output)
     zipfile.ZipFile(next(iter(uploaded))).extractall("/content")
 %cd /content/EmotionLens-AI
 !ls"""),
