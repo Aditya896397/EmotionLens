@@ -21,9 +21,10 @@ EXPERIMENT_FILES = {
 
 
 def _dataset_section() -> None:
-    if not config.DATASET_REPORT.exists():
+    path = config.DATASET_REPORT if config.DATASET_REPORT.exists() else config.DATASET_REPORT_PUBLIC
+    if not path.exists():
         return
-    report = json.loads(config.DATASET_REPORT.read_text(encoding="utf-8"))
+    report = json.loads(path.read_text(encoding="utf-8"))
     st.subheader("Dataset and class imbalance")
     rows = [{"split": s, "expression": k, "images": v}
             for s, d in report["splits"].items() for k, v in d["per_class"].items()]

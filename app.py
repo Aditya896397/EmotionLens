@@ -65,10 +65,13 @@ with st.sidebar:
     st.caption("Predictions describe visible facial expressions, not inner emotional states. "
                "No face images are stored.")
 
-# Leaving the webcam page while the camera is on: stop and save the session.
-if page != "Live Webcam Detection" and st.session_state.get("live"):
-    st.session_state.live_run = False
-    live._finalize()
+# Leaving the webcam page with a session open: stop the camera and save the session.
+if page != "Live Webcam Detection":
+    if st.session_state.get("live"):
+        st.session_state.live_run = False
+        live._finalize("live")
+    if st.session_state.get("snap"):
+        live._finalize("snap")
 
 try:
     PAGES[page]()

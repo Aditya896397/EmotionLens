@@ -273,6 +273,9 @@ def save_outputs(splits: dict[str, Split], report: dict, npz_path: Path, report_
         labels=np.array(config.EMOTION_LABELS),
     )
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    # Small copy in reports/ (committed) so deployed apps can show dataset statistics.
+    config.DATASET_REPORT_PUBLIC.parent.mkdir(parents=True, exist_ok=True)
+    config.DATASET_REPORT_PUBLIC.write_text(json.dumps(report, indent=2), encoding="utf-8")
     log.info("Saved %s (%.1f MB)", npz_path, npz_path.stat().st_size / 1024**2)
     log.info("Saved %s", report_path)
 

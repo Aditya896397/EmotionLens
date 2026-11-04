@@ -8,6 +8,7 @@ loaded on top of the defaults defined in AppSettings.
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 
@@ -16,11 +17,17 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 ROOT_DIR = Path(__file__).resolve().parent
 
+# Streamlit Community Cloud checks repositories out under /mount/src. There the server has no
+# camera, so the Live page defaults to capturing from the visitor's browser instead.
+IS_CLOUD = str(ROOT_DIR).replace("\\", "/").startswith("/mount/src") or os.environ.get("EMOTIONLENS_CLOUD") == "1"
+
 DATA_DIR = ROOT_DIR / "data"
 RAW_DATA_DIR = DATA_DIR / "raw"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
 DATASET_NPZ = PROCESSED_DATA_DIR / "fer2013.npz"
 DATASET_REPORT = PROCESSED_DATA_DIR / "dataset_report.json"
+# Copy committed to the repository so deployed apps can show dataset statistics without the data.
+DATASET_REPORT_PUBLIC = ROOT_DIR / "reports" / "dataset_report.json"
 
 CHECKPOINT_DIR = ROOT_DIR / "models" / "checkpoints"
 REPORTS_DIR = ROOT_DIR / "reports"
