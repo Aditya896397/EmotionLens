@@ -273,9 +273,6 @@ def save_outputs(splits: dict[str, Split], report: dict, npz_path: Path, report_
         labels=np.array(config.EMOTION_LABELS),
     )
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
-    # Small copy in reports/ (committed) so deployed apps can show dataset statistics.
-    config.DATASET_REPORT_PUBLIC.parent.mkdir(parents=True, exist_ok=True)
-    config.DATASET_REPORT_PUBLIC.write_text(json.dumps(report, indent=2), encoding="utf-8")
     log.info("Saved %s (%.1f MB)", npz_path, npz_path.stat().st_size / 1024**2)
     log.info("Saved %s", report_path)
 
@@ -358,6 +355,10 @@ def main() -> int:
         return 1
 
     save_outputs(splits, report, args.out, args.out.with_name("dataset_report.json"))
+    # Small copy in reports/ (committed) so deployed apps can show dataset statistics. Written only
+    # here, never from save_outputs, so tests that call save_outputs cannot overwrite it.
+    config.DATASET_REPORT_PUBLIC.parent.mkdir(parents=True, exist_ok=True)
+    config.DATASET_REPORT_PUBLIC.write_text(json.dumps(report, indent=2), encoding="utf-8")
     plot_class_distribution(report, config.FIGURES_DIR / "class_distribution.png")
     plot_sample_grid(splits["train"], config.FIGURES_DIR / "sample_grid.png", seed=args.seed)
     print_summary(report)

@@ -24,3 +24,6 @@ models/checkpoints/*.keras
 .claude/
 EmotionLens-AI-colab.zip
 emotionlens_results.zip
+
+# Project report drafts (personal details)
+report/

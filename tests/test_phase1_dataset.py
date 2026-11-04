@@ -102,3 +102,14 @@ def test_save_outputs_round_trip(folder_dataset: Path, tmp_path: Path) -> None:
     data = np.load(npz)
     assert data["X_train"].shape == splits["train"][0].shape
     assert list(data["labels"]) == list(config.EMOTION_LABELS)
+
+
+def test_save_outputs_leaves_public_report_untouched(folder_dataset: Path, tmp_path: Path) -> None:
+    """Regression: save_outputs once also rewrote reports/dataset_report.json with test data."""
+    public = config.DATASET_REPORT_PUBLIC
+    before = public.read_bytes() if public.exists() else None
+    splits, report = prep.build_dataset(folder_dataset, val_fraction=0.2)
+    npz = tmp_path / "x" / "fer2013.npz"
+    prep.save_outputs(splits, report, npz, npz.with_name("dataset_report.json"))
+    after = public.read_bytes() if public.exists() else None
+    assert before == after

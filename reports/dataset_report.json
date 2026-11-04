@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-04T08:08:49+00:00",
+  "created_at": "2026-11-04T03:25:41+00:00",
   "source_format": "folders",
-  "source_path": "C:\\Users\\ACER\\AppData\\Local\\Temp\\pytest-of-ACER\\pytest-11\\test_save_outputs_round_trip0\\raw\\archive",
+  "source_path": "C:\\Users\\ACER\\Documents\\EmotionLens-AI\\data\\raw\\fer2013",
   "image_size": 48,
   "labels": [
     "Angry",
@@ -12,66 +12,66 @@
     "Surprise",
     "Neutral"
   ],
-  "validation_split_origin": "stratified 20% of cleaned train (seed=42)",
+  "validation_split_origin": "stratified 10% of cleaned train (seed=42)",
   "rejected_rows_or_unreadable_files": 0,
   "cleaning_train_only": {
-    "train_before": 70,
-    "blank_or_low_variance": 0,
-    "identical_to_val_or_test": 0,
-    "duplicate_within_train": 0,
-    "total_removed": 0,
-    "train_after": 70
+    "train_before": 28709,
+    "blank_or_low_variance": 12,
+    "identical_to_val_or_test": 703,
+    "duplicate_within_train": 1236,
+    "total_removed": 1768,
+    "train_after": 26941
   },
   "eval_low_variance_kept": {
     "val": 0,
-    "test": 0
+    "test": 1
   },
   "splits": {
     "train": {
-      "total": 56,
+      "total": 24246,
       "per_class": {
-        "Angry": 8,
-        "Disgust": 8,
-        "Fear": 8,
-        "Happy": 8,
-        "Sad": 8,
-        "Surprise": 8,
-        "Neutral": 8
+        "Angry": 3411,
+        "Disgust": 317,
+        "Fear": 3428,
+        "Happy": 6328,
+        "Sad": 4209,
+        "Surprise": 2214,
+        "Neutral": 4339
       }
     },
     "val": {
-      "total": 14,
+      "total": 2695,
       "per_class": {
-        "Angry": 2,
-        "Disgust": 2,
-        "Fear": 2,
-        "Happy": 2,
-        "Sad": 2,
-        "Surprise": 2,
-        "Neutral": 2
+        "Angry": 379,
+        "Disgust": 35,
+        "Fear": 381,
+        "Happy": 703,
+        "Sad": 468,
+        "Surprise": 246,
+        "Neutral": 483
       }
     },
     "test": {
-      "total": 21,
+      "total": 7178,
       "per_class": {
-        "Angry": 3,
-        "Disgust": 3,
-        "Fear": 3,
-        "Happy": 3,
-        "Sad": 3,
-        "Surprise": 3,
-        "Neutral": 3
+        "Angry": 958,
+        "Disgust": 111,
+        "Fear": 1024,
+        "Happy": 1774,
+        "Sad": 1247,
+        "Surprise": 831,
+        "Neutral": 1233
       }
     }
   },
-  "train_imbalance_ratio_max_over_min": 1.0,
+  "train_imbalance_ratio_max_over_min": 19.96,
   "class_weights_balanced": {
-    "Angry": 1.0,
-    "Disgust": 1.0,
-    "Fear": 1.0,
-    "Happy": 1.0,
-    "Sad": 1.0,
-    "Surprise": 1.0,
-    "Neutral": 1.0
+    "Angry": 1.0155,
+    "Disgust": 10.9265,
+    "Fear": 1.0104,
+    "Happy": 0.5474,
+    "Sad": 0.8229,
+    "Surprise": 1.5645,
+    "Neutral": 0.7983
   }
 }
