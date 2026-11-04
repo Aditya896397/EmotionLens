@@ -4,21 +4,26 @@ Run on the training machine (Colab/Linux), where TensorFlow is available:
     python -m models.export_onnx                 # every .keras checkpoint
     python -m models.export_onnx --models cnn
 
-Steps per model: .keras -> TensorFlow SavedModel (Keras 3 `model.export`) -> ONNX (tf2onnx),
-then both models predict the same test images and the maximum probability difference and
-the label agreement are recorded in <name>_meta.json. The laptop app loads the .onnx file
-with ONNX Runtime, so it does not need TensorFlow at all.
+Steps per model:
+  1. Rebuild the same architecture WITHOUT the augmentation block and copy the trained weights
+     into it. The augmentation layers hold no weights, so the weight lists match one-to-one.
+     This step is required: Keras' random augmentation layers leave stateless random-number ops
+     in the traced graph even in inference mode, and tf2onnx rejects that graph ("InvalidGraph").
+  2. Run the inference model once (Keras refuses to export a model that has never been called),
+     then export it with Keras 3's built-in exporter, `model.export(path, format="onnx")`,
+     which uses tf2onnx and patches its NumPy 2 incompatibilities.
+  3. Predict the same test images with the original model and with ONNX Runtime, and record the
+     maximum probability difference and label agreement in <name>_meta.json.
+
+tf2onnx 1.16.1 pins protobuf~=3.20, which conflicts with current TensorFlow. Install it with
+`pip install --no-deps tf2onnx==1.16.1`; it works with the protobuf that TensorFlow brings.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
-import shutil
-import subprocess
 import sys
-import tempfile
-from pathlib import Path
 
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 
@@ -33,6 +38,22 @@ log = get_logger("export_onnx")
 OPSET = 17
 
 
+def inference_model(name: str, trained):
+    """Same architecture as `trained`, without augmentation, carrying the trained weights."""
+    from models.cnn_model import build_custom_cnn, build_mobilenetv2
+
+    meta_path = config.CHECKPOINT_DIR / f"{name}_meta.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
+    architecture = meta.get("architecture") or ("mobilenet" if "mobilenet" in name else "cnn")
+    if architecture == "mobilenet":
+        img_size = meta.get("mobilenet_img_size") or config.MOBILENET_IMG_SIZE
+        model = build_mobilenetv2(img_size=img_size, augment=False, weights=None)[0]
+    else:
+        model = build_custom_cnn(augment=False)
+    model.set_weights(trained.get_weights())
+    return model
+
+
 def export_one(name: str, x_check: np.ndarray | None) -> dict:
     import onnxruntime as ort
     from tensorflow import keras
@@ -40,18 +61,13 @@ def export_one(name: str, x_check: np.ndarray | None) -> dict:
     keras_path = config.CHECKPOINT_DIR / f"{name}.keras"
     onnx_path = config.CHECKPOINT_DIR / f"{name}.onnx"
     model = keras.models.load_model(keras_path, compile=False)
+    serving = inference_model(name, model)
 
-    tmp = Path(tempfile.mkdtemp(prefix=f"{name}_savedmodel_"))
-    try:
-        model.export(str(tmp), format="tf_saved_model")
-        cmd = [sys.executable, "-m", "tf2onnx.convert", "--saved-model", str(tmp),
-               "--output", str(onnx_path), "--opset", str(OPSET)]
-        log.info("Running: %s", " ".join(cmd))
-        proc = subprocess.run(cmd, capture_output=True, text=True)
-        if proc.returncode != 0:
-            raise RuntimeError(f"tf2onnx failed for {name}:\n{proc.stderr[-3000:]}")
-    finally:
-        shutil.rmtree(tmp, ignore_errors=True)
+    sample = x_check[:8] if x_check is not None else np.zeros((1, config.IMG_SIZE, config.IMG_SIZE, 1), np.float32)
+    serving.predict(sample, verbose=0)  # build/call once before export
+    serving.export(str(onnx_path), format="onnx", opset_version=OPSET, verbose=False)
+    if not onnx_path.exists():
+        raise RuntimeError(f"ONNX export produced no file for {name}")
 
     result = {"onnx_file": onnx_path.name, "onnx_opset": OPSET,
               "onnx_size_mb": round(onnx_path.stat().st_size / 1024**2, 2)}

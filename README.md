@@ -64,7 +64,7 @@ EmotionLens-AI/
 │   ├── data.py                 # load prepared arrays, tf.data pipelines
 │   ├── train.py                # training CLI (callbacks, class weights, timing)
 │   ├── evaluate.py             # test metrics, confusion matrix, latency, comparison table
-│   ├── export_onnx.py          # .keras -> SavedModel -> ONNX, numerically verified
+│   ├── export_onnx.py          # .keras -> inference copy (no augmentation) -> ONNX, verified
 │   └── checkpoints/            # trained .keras models (created by train.py)
 ├── detection/
 │   ├── face_detector.py        # MediaPipe / Haar detector
@@ -170,7 +170,8 @@ python -m models.evaluate               # accuracy + latency measured on this CP
 python -m scripts.run_experiments all   # lighting, preprocessing, smoothing, multi-face, ablation
 ```
 
-The training scripts also run on any Linux/WSL machine after `pip install -r requirements-train.txt`:
+The training scripts also run on any Linux/WSL machine with TensorFlow ≥ 2.20 after
+`pip install -r requirements-train.txt` and `pip install --no-deps tf2onnx==1.16.1`:
 
 ```bash
 python -m models.train --model cnn

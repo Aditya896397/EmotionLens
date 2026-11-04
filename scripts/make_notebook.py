@@ -18,7 +18,7 @@ to **ONNX** so the laptop app can run them with ONNX Runtime (no TensorFlow need
 
 | Step | Time on a T4 (approx.) |
 |---|---|
-| Install + dataset | ~5 min |
+| Install + dataset | ~3 min |
 | Custom CNN | ~10–15 min |
 | MobileNetV2 | ~20–30 min |
 | Ablations (optional) | ~25 min |
@@ -41,15 +41,14 @@ else:
     zipfile.ZipFile(next(iter(uploaded))).extractall("/content")
 %cd /content/EmotionLens-AI
 !ls"""),
-    ("code", """# 3. Install the training stack, then restart the session automatically (numpy is downgraded).
-#    Colab shows "Your session crashed": this is expected. Continue with the next cell.
+    ("code", """# 3. Install the ONNX export tools (Colab already provides TensorFlow, Keras, NumPy, OpenCV)
 !pip install -q -r requirements-train.txt
-import os; os.kill(os.getpid(), 9)"""),
-    ("code", """# 4. After the restart: verify versions and the GPU
+!pip install -q --no-deps tf2onnx==1.16.1   # --no-deps: its protobuf~=3.20 pin would break TensorFlow"""),
+    ("code", """# 4. Verify versions and the GPU
 %cd /content/EmotionLens-AI
-import tensorflow as tf, numpy as np, keras, tf2onnx, onnxruntime
-print("TF", tf.__version__, "| Keras", keras.__version__, "| numpy", np.__version__,
-      "| tf2onnx", tf2onnx.__version__, "| onnxruntime", onnxruntime.__version__)
+import sys, tensorflow as tf, numpy as np, keras, tf2onnx, onnxruntime
+print("Python", sys.version.split()[0], "| TF", tf.__version__, "| Keras", keras.__version__,
+      "| numpy", np.__version__, "| tf2onnx", tf2onnx.__version__, "| onnxruntime", onnxruntime.__version__)
 print("GPUs:", tf.config.list_physical_devices("GPU"))"""),
     ("code", """# 5. Download FER-2013 from Kaggle and prepare it (cleaning, splits, class weights)
 !mkdir -p data/raw/fer2013

@@ -77,7 +77,9 @@ no risk of training/serving skew from re-implementing normalisation in two place
 ### Training/serving split (ONNX)
 
 Training happens on a GPU machine (Colab) with TensorFlow/Keras. `models/export_onnx.py` converts each
-checkpoint (`.keras` -> SavedModel -> ONNX via tf2onnx, opset 17) and records the maximum probability
+checkpoint to ONNX (opset 17). It first rebuilds the architecture without the augmentation block and copies
+the trained weights in, because Keras' random augmentation layers leave stateless random ops in the traced
+graph that tf2onnx rejects. It then uses Keras' `model.export(format="onnx")` and records the maximum probability
 difference and label agreement against Keras on 1,000 test images. The app loads `<name>.onnx` with
 ONNX Runtime (`recognition/emotion_classifier.py`, backend "onnx"); a Keras backend with the same
 interface remains for machines where TensorFlow works. Motivation: Windows Smart App Control blocks

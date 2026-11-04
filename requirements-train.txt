@@ -1,22 +1,19 @@
-# EmotionLens AI: training environment (Google Colab GPU or any Linux/WSL machine)
+# EmotionLens AI: training environment (Google Colab GPU, or any Linux/WSL machine)
 #
-# Install, then RESTART the Python session (numpy is downgraded):
+# On Colab, use the TensorFlow, Keras, NumPy and OpenCV that Colab already provides; the notebook
+# only adds the packages below. Verified on Colab (Nov 2026): Python 3.13, TensorFlow 2.21,
+# Keras 3.13, NumPy 2.4, protobuf 6.33, T4 GPU.
+#
 #   pip install -r requirements-train.txt
+#   pip install --no-deps tf2onnx==1.16.1
 #
-#   * tensorflow 2.17.1 with bundled CUDA libraries ([and-cuda]) for the Colab GPU;
-#     keras pinned to a release from the same period.
-#   * tf2onnx 1.16.1 needs numpy<2 and protobuf 3.20.x, both compatible with TF 2.17.
-#   * opencv-python-headless (no GUI) is enough for dataset preparation.
-tensorflow[and-cuda]==2.17.1
-keras==3.6.0
-numpy==1.26.4
-protobuf==3.20.3
-tf2onnx==1.16.1
-onnx==1.17.0
-onnxruntime==1.20.1
-opencv-python-headless==4.10.0.84
-pandas==2.2.3
-scikit-learn==1.5.2
-matplotlib==3.9.2
-psutil==6.1.0
-tabulate==0.9.0
+# tf2onnx is installed separately with --no-deps: its metadata pins protobuf~=3.20, which would
+# downgrade protobuf and break current TensorFlow, but the code itself works with the protobuf
+# TensorFlow brings. Keras' ONNX exporter (used by models/export_onnx.py) patches tf2onnx's
+# NumPy 2 incompatibilities.
+#
+# On a machine without TensorFlow, also install:  tensorflow[and-cuda]>=2.20
+onnx>=1.17
+onnxruntime>=1.20
+tabulate>=0.9
+psutil>=5.9
