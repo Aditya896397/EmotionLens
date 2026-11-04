@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Dataset (large, separately licensed) and processed arrays
+data/raw/*
+!data/raw/.gitkeep
+data/processed/
+
+# Runtime / private data
+logs/
+database/*.db
+reports/exports/
+user_settings.json
+kaggle.json
+
+# Trained models (models/checkpoints/*.keras) and reports/ results are intentionally
+# NOT ignored, so the GitHub repo shows real measured results and runs without retraining.

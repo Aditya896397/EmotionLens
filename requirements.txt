@@ -1,0 +1,42 @@
+# EmotionLens AI — pinned dependencies (Python 3.11, CPU-first, Windows/Linux/macOS)
+#
+# Compatibility notes:
+#   * mediapipe 0.10.21 requires numpy<2 and protobuf<5  -> numpy is pinned to 1.26.4,
+#     and tensorflow 2.17.1 is chosen because it also accepts numpy<2 / protobuf<5.
+#   * mediapipe already depends on opencv-contrib-python. Do NOT also install
+#     opencv-python: both provide the `cv2` module and overwrite each other.
+#   * jax/jaxlib are pulled in by mediapipe; they are pinned so pip does not pick a
+#     newer release that needs numpy>=2.
+#   * TensorFlow >= 2.11 has no native-Windows GPU support. On Windows it runs on CPU
+#     (fine for this project); use WSL2 if you want CUDA training.
+
+# Core numerics / data
+numpy==1.26.4
+pandas==2.2.3
+scipy==1.14.1
+
+# Computer vision
+opencv-contrib-python==4.10.0.84
+mediapipe==0.10.21
+jax==0.4.30
+jaxlib==0.4.30
+
+# Deep learning
+tensorflow==2.17.1
+
+# Dashboard and charts
+streamlit==1.40.1
+plotly==5.24.1
+
+# Evaluation
+scikit-learn==1.5.2
+matplotlib==3.9.2
+
+# System info and reports
+psutil==6.1.0
+fpdf2==2.8.1
+
+tabulate==0.9.0          # markdown tables in evaluation reports
+
+# Testing
+pytest==8.3.3
