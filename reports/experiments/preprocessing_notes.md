@@ -1,0 +1,1 @@
+Models are trained on raw FER-2013 pixels. Applying contrast normalisation to *every* face shifts the input distribution; this table shows whether that helps or hurts, and justifies applying enhancement only to dark faces in the live pipeline. Face alignment cannot be ablated on FER-2013 because its images are already roughly aligned crops.

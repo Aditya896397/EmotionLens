@@ -15,8 +15,10 @@ reports/exports/
 user_settings.json
 kaggle.json
 
-# Trained models (models/checkpoints/*.keras) and reports/ results are intentionally
-# NOT ignored, so the GitHub repo shows real measured results and runs without retraining.
+# Keras training checkpoints (~35 MB each) stay local; the app and deployment only need the
+# ONNX models, which ARE committed together with reports/ so the repo shows real measured
+# results and runs without retraining.
+models/checkpoints/*.keras
 
 # Local tooling and build outputs
 .claude/

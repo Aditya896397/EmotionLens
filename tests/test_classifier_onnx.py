@@ -63,7 +63,7 @@ def test_onnx_backend_predicts(checkpoint_dir: Path) -> None:
     assert clf.last_latency_ms > 0
 
 
-def test_best_model_uses_eval_accuracy(checkpoint_dir: Path) -> None:
+def test_best_model_uses_eval_scores(checkpoint_dir: Path) -> None:
     import json
 
     write_tiny_onnx(checkpoint_dir / "cnn.onnx")
@@ -72,3 +72,7 @@ def test_best_model_uses_eval_accuracy(checkpoint_dir: Path) -> None:
     (checkpoint_dir / "eval_mobilenet.json").write_text(json.dumps({"accuracy": 0.64}))
     assert ec.list_models() == ["cnn", "mobilenet"]
     assert ec.best_model_name() == "mobilenet"
+    # macro-F1 takes precedence over accuracy when present
+    (checkpoint_dir / "eval_cnn.json").write_text(json.dumps({"accuracy": 0.61, "f1_macro": 0.60}))
+    (checkpoint_dir / "eval_mobilenet.json").write_text(json.dumps({"accuracy": 0.65, "f1_macro": 0.55}))
+    assert ec.best_model_name() == "cnn"

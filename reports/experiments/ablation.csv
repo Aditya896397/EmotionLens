@@ -1,0 +1,5 @@
+model,architecture,augmentation,class_weights,accuracy,f1_macro,recall_Disgust,recall_Fear,recall_Happy
+cnn,cnn,True,True,0.6144,0.5755,0.6757,0.3223,0.8202
+cnn_noaug,cnn,False,True,0.6395,0.6192,0.5766,0.4375,0.8016
+cnn_noweights,cnn,True,False,0.6509,0.6095,0.3694,0.3955,0.8698
+mobilenet,mobilenet,True,True,0.5495,0.5012,0.5405,0.3018,0.7599

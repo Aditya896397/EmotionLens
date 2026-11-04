@@ -1,0 +1,157 @@
+{
+  "name": "mobilenet",
+  "architecture": "mobilenet",
+  "test_samples": 7178,
+  "accuracy": 0.5495,
+  "precision_macro": 0.5016,
+  "recall_macro": 0.5328,
+  "f1_macro": 0.5012,
+  "precision_weighted": 0.5654,
+  "recall_weighted": 0.5495,
+  "f1_weighted": 0.5507,
+  "per_class": {
+    "Angry": {
+      "precision": 0.4194,
+      "recall": 0.4781,
+      "f1-score": 0.4468,
+      "support": 958.0
+    },
+    "Disgust": {
+      "precision": 0.2013,
+      "recall": 0.5405,
+      "f1-score": 0.2934,
+      "support": 111.0
+    },
+    "Fear": {
+      "precision": 0.4045,
+      "recall": 0.3018,
+      "f1-score": 0.3456,
+      "support": 1024.0
+    },
+    "Happy": {
+      "precision": 0.827,
+      "recall": 0.7599,
+      "f1-score": 0.792,
+      "support": 1774.0
+    },
+    "Sad": {
+      "precision": 0.4567,
+      "recall": 0.3464,
+      "f1-score": 0.394,
+      "support": 1247.0
+    },
+    "Surprise": {
+      "precision": 0.7427,
+      "recall": 0.6703,
+      "f1-score": 0.7046,
+      "support": 831.0
+    },
+    "Neutral": {
+      "precision": 0.4594,
+      "recall": 0.6326,
+      "f1-score": 0.5322,
+      "support": 1233.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      458,
+      69,
+      83,
+      52,
+      106,
+      22,
+      168
+    ],
+    [
+      28,
+      60,
+      6,
+      5,
+      6,
+      0,
+      6
+    ],
+    [
+      164,
+      58,
+      309,
+      35,
+      180,
+      102,
+      176
+    ],
+    [
+      104,
+      22,
+      43,
+      1348,
+      58,
+      34,
+      165
+    ],
+    [
+      189,
+      41,
+      154,
+      81,
+      432,
+      17,
+      333
+    ],
+    [
+      40,
+      23,
+      96,
+      33,
+      12,
+      557,
+      70
+    ],
+    [
+      109,
+      25,
+      73,
+      76,
+      152,
+      18,
+      780
+    ]
+  ],
+  "labels": [
+    "Angry",
+    "Disgust",
+    "Fear",
+    "Happy",
+    "Sad",
+    "Surprise",
+    "Neutral"
+  ],
+  "parameters": 2587719,
+  "model_file_mb": 9.76,
+  "inference_backend": "onnx",
+  "runtime": "onnxruntime 1.20.1",
+  "training_seconds": 558.8,
+  "epochs_run": 35,
+  "augmentation": true,
+  "class_weights": true,
+  "test_set_throughput_img_per_s": 943.4,
+  "latency": {
+    "batch_1": {
+      "median_ms": 0.987,
+      "p95_ms": 1.554,
+      "per_face_ms": 0.987
+    },
+    "batch_4": {
+      "median_ms": 2.738,
+      "p95_ms": 3.165,
+      "per_face_ms": 0.685
+    },
+    "batch_8": {
+      "median_ms": 4.722,
+      "p95_ms": 6.43,
+      "per_face_ms": 0.59
+    }
+  },
+  "device": "CPU"
+}

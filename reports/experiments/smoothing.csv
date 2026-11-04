@@ -1,0 +1,8 @@
+method,flips_per_sequence,flips_per_second_at_30fps,sequences_with_no_flip,frame_accuracy
+raw (no smoothing),8.863,6.647,0.36,0.4948
+EMA alpha=0.6,5.157,3.867,0.52,0.501
+EMA alpha=0.35,3.047,2.285,0.617,0.5031
+EMA alpha=0.2,1.613,1.21,0.667,0.5013
+window=5,2.213,1.66,0.64,0.5024
+window=10,1.287,0.965,0.69,0.5032
+EMA alpha=0.35 + hysteresis(3),0.75,0.562,0.713,0.5035

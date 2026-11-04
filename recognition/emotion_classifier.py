@@ -43,7 +43,11 @@ def list_models() -> list[str]:
 
 
 def best_model_name() -> str | None:
-    """Model with the highest measured test accuracy, else 'cnn', else any checkpoint."""
+    """Model with the highest measured test macro-F1 (accuracy if F1 is missing), else 'cnn'.
+
+    Macro-F1 weighs every expression equally. Plain accuracy is dominated by the frequent
+    classes (Happy, Neutral) and would prefer a model that rarely recognises Disgust or Fear.
+    """
     models = list_models()
     if not models:
         return None
@@ -52,7 +56,8 @@ def best_model_name() -> str | None:
         path = config.EXPERIMENTS_DIR / f"eval_{name}.json"
         if path.exists():
             try:
-                scored.append((json.loads(path.read_text(encoding="utf-8"))["accuracy"], name))
+                result = json.loads(path.read_text(encoding="utf-8"))
+                scored.append((result.get("f1_macro", result["accuracy"]), name))
             except (KeyError, json.JSONDecodeError):
                 continue
     if scored:

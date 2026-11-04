@@ -1,14 +1,14 @@
 # Interview preparation: EmotionLens AI
 
 Answers are short on purpose: say them in your own words and point to the file that implements each one.
-Fill in the bracketed numbers from your own `reports/experiments/` results.
+Numbers quoted below come from the measured results in `reports/experiments/` (see README → Results).
 
 ## Project pitch (30 seconds)
 "EmotionLens AI is a real-time computer vision system that detects multiple faces, tracks them with
 ByteTrack, classifies their visible facial expressions with a CNN trained on FER-2013, and smooths
 predictions over time per person. A Streamlit dashboard shows the analytics, and only aggregate
 statistics are stored in SQLite. I compared a custom CNN with MobileNetV2 transfer learning:
-[X]% vs [Y]% test accuracy at [a] vs [b] ms per face on CPU."
+64.0% vs 55.0% test accuracy (macro-F1 0.619 vs 0.501) at 2.6 vs 1.0 ms per face on a laptop CPU."
 
 ## Architecture and design
 1. **Walk me through one frame.** Brightness check → (enhance) → BlazeFace → ByteTrack update → align +
@@ -67,13 +67,13 @@ statistics are stored in SQLite. I compared a custom CNN with MobileNetV2 transf
 ## Evaluation and experiments
 22. **Which metrics, and why macro-F1?** Accuracy is dominated by frequent classes; macro-F1 weighs every
     class equally, so a failure on *Disgust* shows up.
-23. **What did the confusion matrix show?** [Fill in, e.g. Fear↔Surprise, Sad↔Neutral confusions.]
+23. **What did the confusion matrix show?** Fear is the hardest class (recall 0.32–0.44), confused with Surprise and Sad; Sad is confused with Neutral. Happy and Surprise are easiest (recall ≈ 0.8).
 24. **How did you measure latency?** `tf.function`, 10 warm-up runs, then median/p95 of 100 runs for batch
     sizes 1/4/8 on CPU. Batching makes the per-face cost drop as the face count grows.
-25. **What did temporal smoothing do?** On synthetic jitter sequences, flips per sequence fell from [a] (raw)
-    to [b] (EMA α = 0.35 + hysteresis) with frame accuracy [c→d]. The cost is response lag to real changes.
-26. **What about lighting robustness?** Accuracy drops from [a] to [b] under "very dark", and enhancement
-    recovers [c]. Synthetic darkening underestimates real low-light noise.
+25. **What did temporal smoothing do?** On synthetic jitter sequences, flips per 40 frames fell from 8.86 (raw)
+    to 0.75 (EMA α = 0.35 + hysteresis), −92%, with frame accuracy unchanged (0.495 → 0.504). The cost is response lag to real changes.
+26. **What about lighting robustness?** `cnn_noaug` drops from 0.640 to 0.363 under "very dark"; the pipeline's
+    enhancement recovers it to 0.619. Augmentation alone keeps the CNN at 0.494. Synthetic darkening underestimates real low-light noise.
 27. **What would you add next?** Real webcam test clips with labels, calibration (temperature scaling)
     so confidence ≈ accuracy, a demographic fairness audit on a dataset with annotations
     (e.g., RAF-DB/AffectNet subsets), and quantised TFLite inference.

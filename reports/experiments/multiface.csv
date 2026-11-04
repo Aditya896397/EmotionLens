@@ -1,0 +1,6 @@
+faces_in_frame,detector,detection_recall,detect_ms,classify_ms,pipeline_ms,pipeline_fps
+1,mediapipe,0.95,11.16,23.17,38.65,25.9
+2,mediapipe,0.725,10.86,32.46,46.49,21.5
+4,mediapipe,0.825,13.29,49.43,69.62,14.4
+6,mediapipe,0.083,10.72,0.0,23.12,43.3
+9,mediapipe,0.072,12.16,7.76,32.1,31.1

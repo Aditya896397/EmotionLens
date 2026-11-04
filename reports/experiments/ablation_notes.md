@@ -1,0 +1,1 @@
+Train the ablation variants with `python -m models.train --model cnn --no-augment --name cnn_noaug` and `--no-class-weights --name cnn_noweights`, evaluate them, then rerun this experiment. Compare accuracy (dominated by frequent classes) with macro-F1 and minority-class recall (Disgust, Fear) to see what class weighting actually changes.
