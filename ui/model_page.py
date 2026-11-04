@@ -67,8 +67,7 @@ def render() -> None:
         st.warning("No evaluation results found.")
         st.markdown("Train the models with **notebooks/train_colab.ipynb** on Google Colab, unzip the "
                     "downloaded results into the project folder, then measure them on this machine:")
-        st.code("python -m models.evaluate
-python -m scripts.run_experiments all", language="bash")
+        st.code("python -m models.evaluate\npython -m scripts.run_experiments all", language="bash")
         _dataset_section()
         return
 
