@@ -91,6 +91,14 @@ statistics are stored in SQLite. I compared a custom CNN with MobileNetV2 transf
 32. **Why did you pin library versions?** MediaPipe 0.10.21 needs numpy<2 and protobuf<5; TF 2.17.1 is
     compatible with both; mediapipe pulls opencv-contrib-python, which conflicts with opencv-python.
 
+33. **Why ONNX Runtime on the laptop?** Smart App Control on Windows 11 blocked TensorFlow's unsigned DLLs.
+    I split training (Colab GPU, TensorFlow) from serving (ONNX Runtime: Microsoft-signed, small, fast
+    CPU kernels), verified the export numerically (max probability difference and label agreement vs
+    Keras), and kept one classifier interface with two backends.
+34. **What was the DLL load-order bug?** pyarrow bundles an older `msvcp140.dll`. If pandas imports pyarrow
+    first, Windows reuses that DLL and MediaPipe's native module fails to initialise. Loading MediaPipe
+    first (`utils/native_preload.py`) fixes it.
+
 ## Quick formulas
 - IoU = |A∩B| / |A∪B|
 - EMA: s_t = α·p_t + (1−α)·s_{t−1}; effective window ≈ 2/α − 1

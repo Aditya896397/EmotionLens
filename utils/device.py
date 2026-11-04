@@ -1,6 +1,7 @@
 """CPU/GPU detection and TensorFlow runtime configuration."""
 from __future__ import annotations
 
+import importlib.util
 import os
 import platform
 from dataclasses import dataclass, field
@@ -17,7 +18,9 @@ log = get_logger("device")
 class DeviceInfo:
     device: str                      # "GPU" or "CPU"
     gpu_names: list[str] = field(default_factory=list)
-    tensorflow_version: str = "unavailable"
+    tensorflow_version: str = "not installed"
+    onnxruntime_version: str = "not installed"
+    onnx_providers: list[str] = field(default_factory=list)
     cpu_name: str = ""
     physical_cores: int | None = None
     logical_cores: int | None = None
@@ -27,7 +30,8 @@ class DeviceInfo:
 
 @lru_cache(maxsize=1)
 def configure_tensorflow() -> DeviceInfo:
-    """Detect devices once per process and enable GPU memory growth when a GPU exists.
+    """Detect compute devices once per process (ONNX Runtime providers and, if installed,
+    TensorFlow GPUs with memory growth enabled).
 
     Falls back to CPU silently: every model in this project is small enough to run
     in real time on a laptop CPU.
@@ -43,9 +47,23 @@ def configure_tensorflow() -> DeviceInfo:
         os_name=f"{platform.system()} {platform.release()}",
     )
     try:
+        import onnxruntime as ort
+
+        info.onnxruntime_version = ort.__version__
+        info.onnx_providers = ort.get_available_providers()
+        if any(p in info.onnx_providers for p in ("CUDAExecutionProvider", "DmlExecutionProvider")):
+            info.device = "GPU"
+    except Exception as exc:
+        log.warning("onnxruntime unavailable: %s", exc)
+
+    # TensorFlow is optional on the laptop (the app uses ONNX Runtime). Checking find_spec first
+    # avoids a slow, failing import where Windows Smart App Control blocks TensorFlow's DLLs.
+    if importlib.util.find_spec("tensorflow") is None:
+        return info
+    try:
         import tensorflow as tf
     except Exception as exc:  # DLL errors on Windows surface as ImportError/OSError
-        log.error("TensorFlow could not be imported: %s", exc)
+        log.warning("TensorFlow is installed but could not be imported: %s", exc)
         return info
 
     info.tensorflow_version = tf.__version__
@@ -58,7 +76,7 @@ def configure_tensorflow() -> DeviceInfo:
     if gpus:
         info.device = "GPU"
         info.gpu_names = [g.name for g in gpus]
-        log.info("Using GPU: %s", info.gpu_names)
+        log.info("TensorFlow GPU: %s", info.gpu_names)
     else:
         log.info("No GPU visible to TensorFlow; using CPU (%s logical cores).", info.logical_cores)
     return info

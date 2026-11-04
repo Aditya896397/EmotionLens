@@ -30,7 +30,7 @@ def _style(fig: go.Figure, height: int = 360, title: str | None = None) -> go.Fi
         plot_bgcolor="rgba(0,0,0,0)",
         height=height,
         margin=dict(l=10, r=10, t=50 if title else 20, b=10),
-        title=dict(text=title, x=0.01, font=dict(size=15)) if title else None,
+        title=dict(text=title or "", x=0.01, font=dict(size=15)),
         font=dict(family="Inter, Segoe UI, sans-serif", size=12),
         legend=dict(orientation="h", yanchor="bottom", y=-0.25, x=0),
     )

@@ -5,9 +5,7 @@ Run from the project root:
 """
 from __future__ import annotations
 
-import os
-
-os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
+import utils.native_preload  # noqa: F401  (must come before streamlit/pandas, see module docstring)
 
 import streamlit as st
 

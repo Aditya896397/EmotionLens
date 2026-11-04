@@ -29,6 +29,8 @@ import time
 
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 
+import utils.native_preload  # noqa: E402,F401  (load order: before pandas/pyarrow)
+
 import cv2
 import matplotlib
 
@@ -59,14 +61,8 @@ LIGHTING_CONDITIONS = [  # (name, intensity factor, gamma)
 # helpers
 # ---------------------------------------------------------------------------
 def predict_array(clf: EmotionClassifier, x: np.ndarray, batch: int = 512) -> np.ndarray:
-    """x: uint8 (N, 48, 48) -> probabilities (N, 7)."""
-    import tensorflow as tf
-
-    out = []
-    for i in range(0, len(x), batch):
-        chunk = x[i:i + batch].astype(np.float32)[..., np.newaxis]
-        out.append(clf._infer(tf.constant(chunk)).numpy())
-    return np.concatenate(out) if out else np.zeros((0, config.NUM_CLASSES))
+    """x: uint8 (N, 48, 48) -> probabilities (N, 7), on whichever backend clf uses."""
+    return clf.predict_array(x, batch_size=batch)
 
 
 def metrics(y_true: np.ndarray, probs: np.ndarray) -> dict:

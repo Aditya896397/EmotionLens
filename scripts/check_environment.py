@@ -15,6 +15,8 @@ import sys
 # Silence TensorFlow's C++ start-up chatter before it is imported anywhere.
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 
+import utils.native_preload  # noqa: E402,F401  (load order: before pandas/pyarrow)
+
 import config
 from utils.logger import get_logger
 
@@ -22,18 +24,19 @@ log = get_logger("check_env")
 
 # (import name, pip package name)
 REQUIRED_PACKAGES = [
+    ("mediapipe", "mediapipe"),
+    ("onnxruntime", "onnxruntime"),
     ("numpy", "numpy"),
     ("pandas", "pandas"),
     ("scipy", "scipy"),
     ("cv2", "opencv-contrib-python"),
-    ("mediapipe", "mediapipe"),
-    ("tensorflow", "tensorflow"),
     ("streamlit", "streamlit"),
     ("plotly", "plotly"),
     ("sklearn", "scikit-learn"),
     ("matplotlib", "matplotlib"),
     ("psutil", "psutil"),
     ("fpdf", "fpdf2"),
+    ("pyarrow", "pyarrow"),
 ]
 
 
@@ -77,19 +80,13 @@ def check_cv2_conflict() -> bool:
 
 
 def check_compute() -> None:
-    import psutil
-    import tensorflow as tf
+    from utils.device import configure_tensorflow
 
-    ram_gb = psutil.virtual_memory().total / 1024**3
-    log.info("CPU: %s | physical cores: %s | logical cores: %s | RAM: %.1f GB",
-             platform.processor() or "unknown",
-             psutil.cpu_count(logical=False), psutil.cpu_count(logical=True), ram_gb)
-
-    gpus = tf.config.list_physical_devices("GPU")
-    if gpus:
-        log.info("TensorFlow GPU(s): %s", [g.name for g in gpus])
-    else:
-        log.info("No TensorFlow GPU found -> CPU inference/training will be used (expected on native Windows).")
+    info = configure_tensorflow()
+    log.info("CPU: %s | physical cores: %s | logical cores: %s | RAM: %s GB",
+             info.cpu_name or "unknown", info.physical_cores, info.logical_cores, info.ram_gb)
+    log.info("ONNX Runtime %s providers: %s", info.onnxruntime_version, info.onnx_providers)
+    log.info("TensorFlow: %s (only needed for training, which runs in Colab)", info.tensorflow_version)
 
 
 def check_mediapipe() -> bool:

@@ -52,7 +52,8 @@ def render() -> None:
     c1.metric("Compute device", device.device, help=", ".join(device.gpu_names) or device.cpu_name)
     c2.metric("Expression model", active, help=f"{len(models)} checkpoint(s) available")
     c3.metric("Detector", settings.detector_backend, help="auto = MediaPipe, Haar cascade fallback")
-    c4.metric("TensorFlow", device.tensorflow_version)
+    c4.metric("Inference runtime", f"ONNX Runtime {device.onnxruntime_version}",
+              help=f"TensorFlow: {device.tensorflow_version}")
 
     with st.expander("How the pipeline works"):
         st.markdown(

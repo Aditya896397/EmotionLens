@@ -28,6 +28,8 @@ h1, h2, h3 { letter-spacing: -0.01em; }
 .el-hero h1 { margin: 0; font-size: 1.9rem; }
 .el-hero p { margin: .3rem 0 0 0; color: var(--el-muted); }
 
+.el-kpi-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: .4rem; }
+.el-kpi-cell { flex: 1 1 150px; min-width: 150px; }
 .el-kpi { background: var(--el-card); border: 1px solid var(--el-border); border-radius: 14px;
   padding: 0.9rem 1rem; height: 100%; position: relative; overflow: hidden; }
 .el-kpi::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px;
@@ -65,18 +67,19 @@ def kpi_card(label: str, value, sub: str = "") -> str:
     )
 
 
+def _kpi_html(cards: list[tuple]) -> str:
+    inner = "".join(f'<div class="el-kpi-cell">{kpi_card(*c)}</div>' for c in cards)
+    return f'<div class="el-kpi-row">{inner}</div>'
+
+
 def kpi_row(cards: list[tuple]) -> None:
-    """cards: list of (label, value) or (label, value, sub)."""
-    cols = st.columns(len(cards))
-    for col, card in zip(cols, cards):
-        col.markdown(kpi_card(*card), unsafe_allow_html=True)
+    """cards: list of (label, value) or (label, value, sub). Wraps onto new lines on narrow screens."""
+    st.markdown(_kpi_html(cards), unsafe_allow_html=True)
 
 
 def kpi_row_into(placeholder, cards: list[tuple]) -> None:
-    """Render a KPI row as one HTML block into an st.empty() placeholder (for live updates)."""
-    inner = "".join(f'<div style="flex:1;min-width:140px">{kpi_card(*c)}</div>' for c in cards)
-    placeholder.markdown(f'<div style="display:flex;gap:12px;flex-wrap:wrap">{inner}</div>',
-                         unsafe_allow_html=True)
+    """Render a KPI row into an st.empty() placeholder (for live updates)."""
+    placeholder.markdown(_kpi_html(cards), unsafe_allow_html=True)
 
 
 def note(text: str) -> None:

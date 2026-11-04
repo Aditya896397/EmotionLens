@@ -112,7 +112,8 @@ def render() -> None:
     st.subheader("System")
     d = configure_tensorflow()
     st.json({
-        "device": d.device, "gpus": d.gpu_names, "tensorflow": d.tensorflow_version, "cpu": d.cpu_name,
+        "device": d.device, "gpus": d.gpu_names, "onnxruntime": d.onnxruntime_version,
+        "onnx_providers": d.onnx_providers, "tensorflow": d.tensorflow_version, "cpu": d.cpu_name,
         "cores": f"{d.physical_cores} physical / {d.logical_cores} logical", "ram_gb": d.ram_gb, "os": d.os_name,
         "checkpoints": models, "database": str(config.DB_PATH),
         "privacy": "No face images or embeddings are stored; only aggregate statistics.",

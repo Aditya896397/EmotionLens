@@ -1,10 +1,13 @@
 """Evaluate trained models on the held-out FER-2013 test split and compare them.
 
 Every number written here is computed from the model's predictions on the test set
-and from timings measured on this machine.
+and from timings measured on this machine. Works with either backend: Keras on the
+training machine (Colab) and ONNX Runtime on the laptop, so latency is measured on the
+hardware that will actually run the app.
 
     python -m models.evaluate                       # every checkpoint found
     python -m models.evaluate --models cnn mobilenet
+    python -m models.evaluate --backend keras        # in Colab, before exporting to ONNX
 
 Outputs:
     reports/experiments/eval_<name>.json         metrics, per-class report, confusion matrix, latency
@@ -29,59 +32,37 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
     confusion_matrix,
     precision_recall_fscore_support,
 )
-from tensorflow import keras
 
 import config
 from models.data import PreparedDataMissingError, load_prepared
-from utils.device import configure_tensorflow
+from recognition.emotion_classifier import EmotionClassifier, list_models
 from utils.logger import get_logger
 
 log = get_logger("evaluate")
 
 
 def available_checkpoints() -> list[str]:
-    return sorted(p.stem for p in config.CHECKPOINT_DIR.glob("*.keras"))
+    return list_models()
 
 
-def load_model(name: str) -> keras.Model:
-    path = config.CHECKPOINT_DIR / f"{name}.keras"
-    if not path.exists():
-        raise FileNotFoundError(f"Checkpoint not found: {path}")
-    return keras.models.load_model(path, compile=False)
-
-
-def make_inference_fn(model: keras.Model):
-    @tf.function(input_signature=[tf.TensorSpec([None, config.IMG_SIZE, config.IMG_SIZE, 1], tf.float32)],
-                 reduce_retracing=True)
-    def infer(x):
-        return model(x, training=False)
-
-    return infer
-
-
-def predict(infer, x: np.ndarray, batch_size: int = 256) -> np.ndarray:
-    outputs = [infer(tf.constant(x[i:i + batch_size])).numpy() for i in range(0, len(x), batch_size)]
-    return np.concatenate(outputs, axis=0)
-
-
-def measure_latency(infer, sample: np.ndarray, batch_sizes=(1, 4, 8), runs: int = 100, warmup: int = 10) -> dict:
+def measure_latency(clf: EmotionClassifier, sample: np.ndarray, batch_sizes=(1, 4, 8), runs: int = 100,
+                    warmup: int = 10) -> dict:
     """Median/p95 milliseconds per forward pass for several batch sizes (face counts)."""
     results = {}
     for bs in batch_sizes:
-        batch = tf.constant(np.repeat(sample[:1], bs, axis=0))
+        faces = [sample[0, ..., 0].astype(np.uint8)] * bs
         for _ in range(warmup):
-            infer(batch).numpy()
+            clf.predict_batch(faces)
         times = []
         for _ in range(runs):
             start = time.perf_counter()
-            infer(batch).numpy()
+            clf.predict_batch(faces)
             times.append((time.perf_counter() - start) * 1000)
         results[f"batch_{bs}"] = {
             "median_ms": round(float(np.median(times)), 3),
@@ -133,12 +114,12 @@ def plot_training_curves(name: str, out: Path) -> bool:
     return True
 
 
-def evaluate_model(name: str, x_test: np.ndarray, y_test: np.ndarray, latency_runs: int) -> dict:
-    model = load_model(name)
-    infer = make_inference_fn(model)
+def evaluate_model(name: str, x_test: np.ndarray, y_test: np.ndarray, latency_runs: int,
+                   backend: str = "auto") -> dict:
+    clf = EmotionClassifier(name, backend=backend)
 
     start = time.perf_counter()
-    probs = predict(infer, x_test)
+    probs = clf.predict_array(x_test)
     total_seconds = time.perf_counter() - start
     y_pred = probs.argmax(axis=1)
 
@@ -169,15 +150,17 @@ def evaluate_model(name: str, x_test: np.ndarray, y_test: np.ndarray, latency_ru
         "per_class": {k: {m: round(float(v), 4) for m, v in report[k].items()} for k in config.EMOTION_LABELS},
         "confusion_matrix": cm.tolist(),
         "labels": list(config.EMOTION_LABELS),
-        "parameters": int(model.count_params()),
-        "model_file_mb": round((config.CHECKPOINT_DIR / f"{name}.keras").stat().st_size / 1024**2, 2),
+        "parameters": int(meta.get("parameters") or (clf.model.count_params() if clf.backend == "keras" else 0)),
+        "model_file_mb": round(clf.path.stat().st_size / 1024**2, 2),
+        "inference_backend": clf.backend,
+        "runtime": clf.runtime_version,
         "training_seconds": meta.get("training_seconds"),
         "epochs_run": meta.get("epochs_run"),
         "augmentation": meta.get("augmentation"),
         "class_weights": meta.get("class_weights"),
         "test_set_throughput_img_per_s": round(len(x_test) / total_seconds, 1),
-        "latency": measure_latency(infer, x_test, runs=latency_runs),
-        "device": configure_tensorflow().device,
+        "latency": measure_latency(clf, x_test, runs=latency_runs),
+        "device": clf.device,
     }
     plot_confusion(cm, name, config.FIGURES_DIR / f"confusion_{name}.png")
     plot_training_curves(name, config.FIGURES_DIR / f"training_curves_{name}.png")
@@ -199,6 +182,7 @@ def comparison_table(results: list[dict]) -> pd.DataFrame:
             "train_min": round(r["training_seconds"] / 60, 1) if r.get("training_seconds") else None,
             "latency_1face_ms": r["latency"]["batch_1"]["median_ms"],
             "latency_8faces_ms": r["latency"]["batch_8"]["median_ms"],
+            "backend": r.get("inference_backend", "keras"),
             "device": r["device"],
         })
     return pd.DataFrame(rows)
@@ -228,6 +212,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Evaluate EmotionLens models on the test split.")
     parser.add_argument("--models", nargs="*", default=None, help="Checkpoint names (default: all).")
     parser.add_argument("--latency-runs", type=int, default=100)
+    parser.add_argument("--backend", choices=["auto", "onnx", "keras"], default="auto",
+                        help="auto = ONNX if <name>.onnx exists, else Keras.")
     args = parser.parse_args()
 
     config.ensure_dirs()
@@ -245,7 +231,7 @@ def main() -> int:
     for name in names:
         log.info("Evaluating %s on %d test images ...", name, len(data.y_test))
         try:
-            r = evaluate_model(name, data.x_test, data.y_test, args.latency_runs)
+            r = evaluate_model(name, data.x_test, data.y_test, args.latency_runs, args.backend)
         except FileNotFoundError as exc:
             log.error("%s", exc)
             continue

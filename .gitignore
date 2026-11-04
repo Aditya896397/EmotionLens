@@ -17,3 +17,8 @@ kaggle.json
 
 # Trained models (models/checkpoints/*.keras) and reports/ results are intentionally
 # NOT ignored, so the GitHub repo shows real measured results and runs without retraining.
+
+# Local tooling and build outputs
+.claude/
+EmotionLens-AI-colab.zip
+emotionlens_results.zip

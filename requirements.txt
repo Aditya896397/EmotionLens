@@ -1,14 +1,17 @@
-# EmotionLens AI — pinned dependencies (Python 3.11, CPU-first, Windows/Linux/macOS)
+# EmotionLens AI: laptop / app runtime (Python 3.11, CPU, Windows/Linux/macOS)
+#
+# The app runs the expression model with ONNX Runtime, so TensorFlow is NOT needed here.
+# Training happens in Google Colab (notebooks/train_colab.ipynb, requirements-train.txt).
+# Why: ONNX Runtime's DLLs are Microsoft-signed and pass Windows Smart App Control, which
+# blocks TensorFlow's unsigned DLLs; ONNX Runtime is also smaller and fast on CPU.
 #
 # Compatibility notes:
-#   * mediapipe 0.10.21 requires numpy<2 and protobuf<5  -> numpy is pinned to 1.26.4,
-#     and tensorflow 2.17.1 is chosen because it also accepts numpy<2 / protobuf<5.
-#   * mediapipe already depends on opencv-contrib-python. Do NOT also install
-#     opencv-python: both provide the `cv2` module and overwrite each other.
-#   * jax/jaxlib are pulled in by mediapipe; they are pinned so pip does not pick a
-#     newer release that needs numpy>=2.
-#   * TensorFlow >= 2.11 has no native-Windows GPU support. On Windows it runs on CPU
-#     (fine for this project); use WSL2 if you want CUDA training.
+#   * mediapipe 0.10.21 requires numpy<2 and protobuf<5 -> numpy pinned to 1.26.4.
+#   * mediapipe depends on opencv-contrib-python. Do NOT also install opencv-python:
+#     both provide `cv2` and overwrite each other.
+#   * jax/jaxlib come with mediapipe; pinned so pip does not pick a release needing numpy>=2.
+#   * If TensorFlow is installed in this environment, MediaPipe tries to import it; on a
+#     machine where TensorFlow is blocked that breaks MediaPipe, so keep it out of this venv.
 
 # Core numerics / data
 numpy==1.26.4
@@ -21,12 +24,19 @@ mediapipe==0.10.21
 jax==0.4.30
 jaxlib==0.4.30
 
-# Deep learning
-tensorflow==2.17.1
+# Model inference
+onnxruntime==1.20.1
+onnx==1.17.0             # used by tests to build a tiny model; not needed by the app itself
 
 # Dashboard and charts
 streamlit==1.40.1
 plotly==5.24.1
+pyarrow==18.1.0          # newer builds (e.g. 26.x) are blocked by Smart App Control; 18.1.0 passes
+
+# fonttools (used by matplotlib/fpdf2) installed as pure Python: its compiled extensions are
+# blocked by Smart App Control, and the pure-Python version behaves identically.
+--no-binary fonttools
+fonttools==4.68.0
 
 # Evaluation
 scikit-learn==1.5.2
@@ -35,7 +45,6 @@ matplotlib==3.9.2
 # System info and reports
 psutil==6.1.0
 fpdf2==2.8.1
-
 tabulate==0.9.0          # markdown tables in evaluation reports
 
 # Testing

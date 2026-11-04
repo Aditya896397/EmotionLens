@@ -74,6 +74,17 @@ upsampling + gray→RGB are Keras layers inside the saved model. The runtime onl
 48×48 grayscale crop, so swapping the CNN for MobileNetV2 changes nothing in the pipeline, and there is
 no risk of training/serving skew from re-implementing normalisation in two places.
 
+### Training/serving split (ONNX)
+
+Training happens on a GPU machine (Colab) with TensorFlow/Keras. `models/export_onnx.py` converts each
+checkpoint (`.keras` -> SavedModel -> ONNX via tf2onnx, opset 17) and records the maximum probability
+difference and label agreement against Keras on 1,000 test images. The app loads `<name>.onnx` with
+ONNX Runtime (`recognition/emotion_classifier.py`, backend "onnx"); a Keras backend with the same
+interface remains for machines where TensorFlow works. Motivation: Windows Smart App Control blocks
+TensorFlow's unsigned native DLLs on the target laptop, whereas ONNX Runtime is Microsoft-signed, a far
+smaller dependency, and has fast CPU kernels. `utils/native_preload.py` loads MediaPipe/ONNX Runtime
+before pyarrow, whose bundled older `msvcp140.dll` otherwise breaks MediaPipe's DLL initialisation.
+
 ## 3. Algorithms
 
 ### 3.1 Face detection

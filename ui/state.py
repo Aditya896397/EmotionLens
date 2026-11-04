@@ -40,8 +40,11 @@ def get_classifier() -> EmotionClassifier | None:
         return _load_classifier(name)
     except ModelNotFoundError as exc:
         st.error(str(exc))
-        st.code("python -m scripts.prepare_dataset\npython -m models.train --model cnn\n"
-                "python -m models.evaluate", language="bash")
+        st.markdown("1. Open **notebooks/train_colab.ipynb** in Google Colab and run all cells.
+"
+                    "2. Unzip the downloaded `emotionlens_results.zip` into the project folder.
+"
+                    "3. Reload this page.")
         return None
     except Exception as exc:
         log.exception("Model loading failed")
